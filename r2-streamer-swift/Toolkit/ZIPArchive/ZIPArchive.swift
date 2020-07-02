@@ -227,7 +227,8 @@ internal class ZipArchive: Loggable {
     /// - Parameter x: The number of bytes to advance the current offset to.
     internal func seek(_ offset: Int) throws {
         let isCompressed = try informationsOfCurrentFile().isCompressed
-        if isCompressed {
+        // FIXME: For now we never use unzseek64 because it is broken (see unit tests on shared).
+        if true || isCompressed {
             // Deflate is stream-based, so we need to read the bytes from the beginning and discard
             // them until we reach the offset.
             let ioffset = Int(offset)
