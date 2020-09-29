@@ -56,7 +56,7 @@ internal class SampleGenerator: XCTest {
     internal func parseEpub(at url: URL) -> PubBox? {
         let pubBox: PubBox
         do {
-            pubBox = try EpubParser.parse(at: url).0
+            pubBox = try EPUBParser.parse(at: url).0
         } catch {
             XCTFail("An exception occured while parsing publication at \(url.path)")
             log(.error, error)
@@ -116,16 +116,16 @@ internal class SampleGenerator: XCTest {
     internal func getSamplesUrl(named: String, ofType: String?) -> URL? {
         let bundle = Bundle(for: type(of: self))
 
-        guard let path = bundle.path(forResource: "Samples/\(named)", ofType: ofType) else {
-            XCTFail("Couldn't find resource name \(named) in Samples/")
+        guard let path = bundle.path(forResource: "Fixtures/\(named)", ofType: ofType) else {
+            XCTFail("Couldn't find resource name \(named) in Fixtures/")
             return nil
         }
-        return URL(string: path)
+        return URL(fileURLWithPath: path)
     }
     
     internal func getSamplesFileURL(named: String, ofType: String?) -> URL? {
         let bundle = Bundle(for: type(of: self))
-        return bundle.url(forResource: "Samples/\(named)", withExtension: ofType)
+        return bundle.url(forResource: "Fixtures/\(named)", withExtension: ofType)
     }
     
 }
