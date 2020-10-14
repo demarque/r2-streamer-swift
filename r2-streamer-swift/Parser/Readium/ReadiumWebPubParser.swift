@@ -50,31 +50,22 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         
         let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData), isPackaged: isPackage)
         var fetcher = fetcher
-        var positionsFactory: PositionsServiceFactory? = nil
-        
+    
         // For a manifest, we discard the `fetcher` provided by the Streamer, because it was only
         // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
         // resources.
         if !isPackage {
             fetcher = HTTPFetcher()
         }
-
-        switch format {
-        case .lcpProtectedPDF:
+        
+        if format == .lcpProtectedPDF {
             // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
             guard
                 !manifest.readingOrder.isEmpty,
-                manifest.readingOrder.all(matchMediaType: .pdf) else
-            {
+                manifest.readingOrder.all(matchMediaType: .pdf)
+            else {
                 throw Error.invalidManifest
             }
-            positionsFactory = LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory)
-            
-        case .divina, .divinaManifest:
-            positionsFactory = PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*")
-            
-        default:
-            break
         }
 
         return Publication.Builder(
@@ -82,7 +73,19 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             publicationFormat: (format == .lcpProtectedPDF ? .pdf : .webpub),
             manifest: manifest,
             fetcher: fetcher,
-            servicesBuilder: .init(positions: positionsFactory)
+            servicesBuilder: PublicationServicesBuilder {
+                switch format {
+                case .lcpProtectedPDF:
+                    // FIXME: parserType
+                    $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
+                case .divina, .divinaManifest:
+                    $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*"))
+                case .readiumAudiobook, .readiumAudiobookManifest:
+                    $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
+                default:
+                    break
+                }
+            }
         )
     }
 
