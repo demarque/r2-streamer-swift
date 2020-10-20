@@ -80,7 +80,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                     $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
                 case .divina, .divinaManifest:
                     $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*"))
-                case .readiumAudiobook, .readiumAudiobookManifest:
+                case .readiumAudiobook, .readiumAudiobookManifest, .lcpProtectedAudiobook:
                     $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
                 default:
                     break
