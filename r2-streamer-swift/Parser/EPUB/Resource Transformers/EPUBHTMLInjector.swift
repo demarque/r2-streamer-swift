@@ -72,8 +72,13 @@ final class EPUBHTMLInjector {
                 content = content.insert(string: viewport, at: headStart)
 
                 if let headEnd = content.startIndex(of: "</head>") {
-                    let openDyslexicStyle = #"<style type="text/css">@font-face{font-family: "OpenDyslexic"; src:url("/fonts/OpenDyslexic-Regular.otf") format("opentype");}</style>"#
-                    content = content.insert(string: openDyslexicStyle, at: headEnd)
+                    let style = """
+                    <style type="text/css">
+                        @font-face{font-family: "OpenDyslexic"; src:url("/fonts/OpenDyslexic-Regular.otf") format("opentype");}
+                        @font-face{font-family: "Literata"; src:url("/fonts/Literata-Regular.ttf") format("opentype");}
+                    </style>
+                    """
+                    content = content.insert(string: style, at: headEnd)
                 }
             }
             
