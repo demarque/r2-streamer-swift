@@ -32,12 +32,12 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     }
     
     public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard let format = file.format, format.mediaType.isReadiumWebPubProfile else {
+        guard let mediaType = file.format, mediaType.isReadiumWebPubProfile else {
             return nil
         }
         
-        let isPackage = !format.mediaType.isRWPM
-        
+        let isPackage = !mediaType.isRWPM
+
         // Reads the manifest data from the fetcher.
         guard let manifestData: Data = (
             isPackage
@@ -50,34 +50,33 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
         
         let manifest = try Manifest(json: JSONSerialization.jsonObject(with: manifestData), isPackaged: isPackage)
         var fetcher = fetcher
-    
+
         // For a manifest, we discard the `fetcher` provided by the Streamer, because it was only
         // used to read the manifest file. We use an `HTTPFetcher` instead to serve the remote
         // resources.
         if !isPackage {
             fetcher = HTTPFetcher()
         }
-        
-        if format == .lcpProtectedPDF {
+
+        if mediaType.matches(.lcpProtectedPDF) {
             // Checks the requirements from the spec, see. https://readium.org/lcp-specs/drafts/lcpdf
             guard
                 !manifest.readingOrder.isEmpty,
-                manifest.readingOrder.all(matchMediaType: .pdf)
-            else {
+                manifest.readingOrder.all(matchMediaType: .pdf) else
+            {
                 throw Error.invalidManifest
             }
         }
 
         return Publication.Builder(
-            fileFormat: format,
-            publicationFormat: (format == .lcpProtectedPDF ? .pdf : .webpub),
+            mediaType: mediaType,
+            format: (mediaType.matches(.lcpProtectedPDF) ? .pdf : .webpub),
             manifest: manifest,
             fetcher: fetcher,
             servicesBuilder: PublicationServicesBuilder {
-                switch format {
+                switch mediaType {
                 case .lcpProtectedPDF:
-                    // FIXME: parserType
-                    $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
+                    $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: self.pdfFactory))
                 case .divina, .divinaManifest:
                     $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: "image/*"))
                 case .readiumAudiobook, .readiumAudiobookManifest, .lcpProtectedAudiobook:
@@ -92,6 +91,18 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     @available(*, unavailable, message: "Use an instance of `Streamer` to open a `Publication`")
     public static func parse(at url: URL) throws -> (PubBox, PubParsingCallback) {
         fatalError("Not available")
+    }
+
+}
+
+private extension MediaType {
+
+    /// Returns whether this media type is of a Readium Web Publication profile.
+    var isReadiumWebPubProfile: Bool {
+        matchesAny(
+            .readiumWebPub, .readiumWebPubManifest, .readiumAudiobook, .readiumAudiobookManifest,
+            .lcpProtectedAudiobook, .divina, .divinaManifest, .lcpProtectedPDF
+        )
     }
 
 }
