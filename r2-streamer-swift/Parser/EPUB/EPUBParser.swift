@@ -48,8 +48,8 @@ final public class EPUBParser: PublicationParser {
     
     public init() {}
     
-    public func parse(file: File, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
-        guard file.format == .epub else {
+    public func parse(asset: PublicationAsset, fetcher: Fetcher, warnings: WarningLogger?) throws -> Publication.Builder? {
+        guard asset.mediaType() == .epub else {
             return nil
         }
         
@@ -59,7 +59,7 @@ final public class EPUBParser: PublicationParser {
         let encryptions = (try? EPUBEncryptionParser(fetcher: fetcher))?.parseEncryptions() ?? [:]
 
         // Extracts metadata and links from the OPF.
-        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, fallbackTitle: file.name, encryptions: encryptions).parsePublication()
+        let components = try OPFParser(fetcher: fetcher, opfHREF: opfHREF, fallbackTitle: asset.name, encryptions: encryptions).parsePublication()
         let metadata = components.metadata
         let links = components.readingOrder + components.resources
         
@@ -81,9 +81,9 @@ final public class EPUBParser: PublicationParser {
             servicesBuilder: .init(
                 positions: EPUBPositionsService.makeFactory()
             ),
-            setupPublication: { [self] publication in
+            setupPublication: { publication in
                 publication.userProperties = userProperties
-                publication.userSettingsUIPreset = userSettingsPreset(for: publication.metadata)
+                publication.userSettingsUIPreset = self.userSettingsPreset(for: publication.metadata)
             }
         )
     }
