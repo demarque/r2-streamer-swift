@@ -2,13 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-**Warning:** Features marked as *experimental* may change or be removed in a future release without notice. Use with caution.
+**Warning:** Features marked as *alpha* may change or be removed in a future release without notice. Use with caution.
 
 ## [Unreleased]
 
 ### Added
 
+* Support for Swift Package Manager (contributed by [@stevenzeck](https://github.com/readium/r2-streamer-swift/pull/210)).
 * EPUB publications implement a `SearchService` to search through the content.
+
+### Changed
+
+* The default EPUB positions service now uses the archive entry length when available. [This is similar to how Adobe RMSDK generates page numbers](https://github.com/readium/architecture/issues/123).
+    * To use the former strategy, create the `Streamer` with: `Streamer(parsers: [EPUBParser(reflowablePositionsStrategy: .originalLength(pageLength: 1024))])`
+    
+
+## [2.0.0]
+
+### Deprecated
+
+* All APIs deprecated in previous versions are now unavailable.
 
 
 ## [2.0.0-beta.2]
@@ -67,3 +80,4 @@ All notable changes to this project will be documented in this file.
 [2.0.0-alpha.2]: https://github.com/readium/r2-streamer-swift/compare/2.0.0-alpha.1...2.0.0-alpha.2
 [2.0.0-beta.1]: https://github.com/readium/r2-streamer-swift/compare/2.0.0-alpha.2...2.0.0-beta.1
 [2.0.0-beta.2]: https://github.com/readium/r2-streamer-swift/compare/2.0.0-beta.1...2.0.0-beta.2
+[2.0.0]: https://github.com/readium/r2-streamer-swift/compare/2.0.0-beta.2...2.0.0
